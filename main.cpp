@@ -11,6 +11,7 @@
 #include<stdlib.h>
 #include<string>
 #include<list>
+#include<map>
 
 using namespace std; 
 
@@ -20,8 +21,10 @@ class Graph {
 		list<int> *adj; //pointer to array containing adjacency list
 	public:
 		Graph(int size = 2);
+        ~Graph();
 		void addEdge(int u, int v); //function to add edge to graph
 		void BFS(int); // displays Breadth First Traversal based on starting node
+        int getDistance(map<int,int> &, int);
 };
 
 Graph::Graph(int v) {
@@ -29,8 +32,26 @@ Graph::Graph(int v) {
 	adj = new list<int>[v];
 }
 
+Graph::~Graph()
+{
+    delete [] adj;
+}
+
 void Graph::addEdge(int u, int v) {
 	adj[u].push_back(v); //add v to u's list
+}
+
+int Graph::getDistance(map<int,int> &dict, int node)
+{
+    if (dict[node] == -1)
+    {
+        return 0;
+    }
+    else
+    {
+        return (1+getDistance(dict, dict[node]));
+    }
+
 }
 
 void Graph::BFS(int s) {
@@ -42,13 +63,20 @@ void Graph::BFS(int s) {
 	{
 		visited[i] = false;
 	}
-
-	//create the BFS queue
+    
+    //create the BFS queue
 	list<int> queue;
 
 	//mark the first node as visited and add to queue
 	visited[s] = true;
 	queue.push_back(s);
+    
+    //creating parent dictionary
+    map<int, int> parent_dict;
+
+    //mark the first node as visited and add to queue
+    int parent = -1;
+    parent_dict[s]=parent;
 
 	//i will get all adjacent vertices of a vertex
 	list<int>::iterator i;
@@ -59,22 +87,48 @@ void Graph::BFS(int s) {
 		s = queue.front();
 		cout << s << " ";
 		queue.pop_front();
-		
+        
+        parent = s;
 		//get all adjacent vertices of the dequeued vertex s
 		//if an adjacent has not been visited mark it visited and 
 		//add to the queue
 		for (i = adj[s].begin(); i != adj[s].end(); i++)
 		{
-			cout << "Parent: " << s << endl;
-			cout << "child: " << *i << endl;
 			if(!visited[*i])
 			{
 				visited[*i] = true;
 				queue.push_back(*i);
+                parent_dict[*i]=parent;
+
 			}
 		}
 	}
 	cout << endl;
+    
+    //printing the parents of each node
+    for ( auto it = parent_dict.begin(); it != parent_dict.end(); it++)
+    {
+        cout << it->first << ".p=";
+        if (it->second==-1)
+        {
+            cout<< "nil";
+        }
+        else
+        {
+            cout << it->second;
+        }
+        cout << ", ";
+    }
+    cout<<endl;
+    
+    //printing the distance of each node
+    for ( auto it = parent_dict.begin(); it != parent_dict.end(); it++)
+    {
+   
+        cout << it->first << ".d=" << getDistance(parent_dict, it->first) << ", ";
+    }
+    cout<<endl<<endl;
+    
 }
 
 //main function, takes and converts the input file
